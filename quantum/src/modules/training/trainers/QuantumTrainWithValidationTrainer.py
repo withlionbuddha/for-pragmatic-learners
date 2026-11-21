@@ -6,7 +6,7 @@ from modules.training.runners.QuantumBatchRunner import QuantumBatchRunner
 from modules.training.runners.QuantumTrainEpochRunner import QuantumTrainEpochRunner
 from modules.training.trainers.BaseTrainTrainer import BaseTrainTrainer
 from modules.training.runners.TrainValidEpochRunner import TrainValidEpochRunner
-from modules.training.runners.ValidEpochRunner import ValidEpochRunner
+from modules.training.runners.QuantumValidEpochRunner import QuantumValidEpochRunner
 
 
 class QuantumTrainWithValidationTrainer(BaseTrainTrainer):
@@ -24,7 +24,7 @@ class QuantumTrainWithValidationTrainer(BaseTrainTrainer):
     def create_runner(self) -> tc.RunnerLike:
         return TrainValidEpochRunner(
             QuantumTrainEpochRunner(self.model, self.batch_runner()),
-            ValidEpochRunner(self.model, self.batch_runner()),
+            QuantumValidEpochRunner(self.model, self.batch_runner()),
         )
 
     @tc.validate_types
