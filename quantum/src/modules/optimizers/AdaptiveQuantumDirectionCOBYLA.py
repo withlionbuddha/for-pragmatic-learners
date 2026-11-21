@@ -10,13 +10,13 @@ import modules.common.TypeContracts as tc
 from modules.optimizers.AdaptiveQuantumDirectionSampler import (
     AdaptiveQuantumDirectionSampler,
 )
-from modules.optimizers.QuantumDirectionCOBYLAWork import (
-    QuantumDirectionCOBYLAWork,
+from modules.optimizers.QuantumDirectionCOBYLA import (
+    QuantumDirectionCOBYLA,
     _DirectionObjective,
 )
 
 
-class AdaptiveQuantumDirectionCOBYLAWork(QuantumDirectionCOBYLAWork):
+class AdaptiveQuantumDirectionCOBYLA(QuantumDirectionCOBYLA):
     """Independent adaptive Ry sampler + one-dimensional COBYLA optimizer."""
 
     @tc.validate_types

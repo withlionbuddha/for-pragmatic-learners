@@ -12,7 +12,7 @@ import modules.common.TypeContracts as tc
 from modules.optimizers.QuantumDirectionSampler import QuantumDirectionSampler
 
 
-class QuantumSPSAWork:
+class QuantumSPSA:
     @tc.validate_types
     def __init__(
         self,

@@ -4,8 +4,8 @@ import pytest
 import torch
 from torch import nn
 
-from modules.optimizers.QuantumSPSAWork import QuantumSPSAWork
-from modules.optimizers.QuantumDirectionCOBYLAWork import QuantumDirectionCOBYLAWork
+from modules.optimizers.QuantumSPSA import QuantumSPSA
+from modules.optimizers.QuantumDirectionCOBYLA import QuantumDirectionCOBYLA
 
 
 class FakeSampler:
@@ -14,8 +14,8 @@ class FakeSampler:
 
 
 @pytest.mark.parametrize("work", [
-    QuantumSPSAWork(steps=1, epsilon=0.1, spsa_lr=0.1),
-    QuantumDirectionCOBYLAWork(steps=1, direction_cobyla_evaluations=12),
+    QuantumSPSA(steps=1, epsilon=0.1, spsa_lr=0.1),
+    QuantumDirectionCOBYLA(steps=1, direction_cobyla_evaluations=12),
 ])
 def test_quantum_work_updates_and_reports_metrics(work):
     model = nn.Linear(1, 1, bias=False)
@@ -35,14 +35,14 @@ def test_quantum_work_updates_and_reports_metrics(work):
     assert metrics["steps_done"] == 1
 
 
-@pytest.mark.parametrize("work", [QuantumSPSAWork(), QuantumDirectionCOBYLAWork()])
+@pytest.mark.parametrize("work", [QuantumSPSA(), QuantumDirectionCOBYLA()])
 def test_optimize_requires_prepare(work):
     with pytest.raises(RuntimeError, match="prepare"):
         work.optimize(lambda: 1.0)
 
 
 def test_cobyla_restores_parameters_when_objective_fails():
-    work = QuantumDirectionCOBYLAWork(steps=1)
+    work = QuantumDirectionCOBYLA(steps=1)
     work.sampler = FakeSampler()
     model = nn.Linear(1, 1, bias=False)
     with torch.no_grad():
@@ -59,7 +59,7 @@ def test_cobyla_restores_parameters_when_objective_fails():
 
 
 def test_spsa_restores_parameters_when_objective_fails():
-    work = QuantumSPSAWork(steps=1)
+    work = QuantumSPSA(steps=1)
     work.sampler = FakeSampler()
     model = nn.Linear(1, 1, bias=False)
     with torch.no_grad():
