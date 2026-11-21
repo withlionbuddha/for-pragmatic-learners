@@ -113,48 +113,48 @@ def run_one(family, scale, seed, group_size):
             cobyla_radius=0.1, seed=seed,
         )
         optimizer.prepare(model)
-    calls = 0
+        calls = 0
 
-    def objective():
-        nonlocal calls
-        calls += 1
-        with torch.no_grad():
-            return float(nn.functional.mse_loss(model(xt), yt))
+        def objective():
+            nonlocal calls
+            calls += 1
+            with torch.no_grad():
+                return float(nn.functional.mse_loss(model(xt), yt))
 
-    def mse(x, y):
-        with torch.no_grad():
-            return float(nn.functional.mse_loss(model(x), y))
+        def mse(x, y):
+            with torch.no_grad():
+                return float(nn.functional.mse_loss(model(x), y))
 
-    def theta_diagnostics(round_index):
-        theta = np.asarray(optimizer.sampler.theta, dtype=float)
-        probabilities = optimizer.sampler.probabilities_plus
-        return {
-            "round": round_index,
-            "mean_abs_theta_shift": float(np.mean(np.abs(theta - np.pi / 2))),
-            "max_abs_theta_shift": float(np.max(np.abs(theta - np.pi / 2))),
-            "std_probability_plus": float(np.std(probabilities)),
-            "mean_probability_plus": float(np.mean(probabilities)),
-        }
-
-    history = [{"round": 0, "train_mse": mse(xt, yt), "val_mse": mse(xv, yv)}]
-    theta_history = [theta_diagnostics(0)]
-    direction_history = []
-    start = time.perf_counter()
-    with profiler("experiment_optimization"):
-        for round_index in range(1, ROUNDS + 1):
-            before = calls
-            info = optimizer.optimize(objective)
-            assert calls - before == info["optimization_evaluations"]
-            assert calls - before <= EVALS_PER_ROUND
-            direction_history.append({
+        def theta_diagnostics(round_index):
+            theta = np.asarray(optimizer.sampler.theta, dtype=float)
+            probabilities = optimizer.sampler.probabilities_plus
+            return {
                 "round": round_index,
-                "signs": optimizer.last_sampled_signs.astype(int).tolist(),
-            })
-            theta_history.append(theta_diagnostics(round_index))
-            history.append({
-                "round": round_index, "train_mse": mse(xt, yt),
-                "val_mse": mse(xv, yv),
-            })
+                "mean_abs_theta_shift": float(np.mean(np.abs(theta - np.pi / 2))),
+                "max_abs_theta_shift": float(np.max(np.abs(theta - np.pi / 2))),
+                "std_probability_plus": float(np.std(probabilities)),
+                "mean_probability_plus": float(np.mean(probabilities)),
+            }
+
+        history = [{"round": 0, "train_mse": mse(xt, yt), "val_mse": mse(xv, yv)}]
+        theta_history = [theta_diagnostics(0)]
+        direction_history = []
+        start = time.perf_counter()
+        with profiler("experiment_optimization"):
+            for round_index in range(1, ROUNDS + 1):
+                before = calls
+                info = optimizer.optimize(objective)
+                assert calls - before == info["optimization_evaluations"]
+                assert calls - before <= EVALS_PER_ROUND
+                direction_history.append({
+                    "round": round_index,
+                    "signs": optimizer.last_sampled_signs.astype(int).tolist(),
+                })
+                theta_history.append(theta_diagnostics(round_index))
+                history.append({
+                    "round": round_index, "train_mse": mse(xt, yt),
+                    "val_mse": mse(xv, yv),
+                })
     memory = profiler.summary()["stages"][0]
     return {
         "family": family, "scale": scale, "seed": seed,
