@@ -7,6 +7,6 @@
 양자 컴퓨팅의 실용성 검증 프로젝트입니다.
 
 - **Quantum README:** [quantum/readme.md](quantum/README.md)
-- **Plan — 2주 실험 계획:** [2주 양자 컴퓨팅 실험 계획서](quantum/QUANTUM_COMPUTING_2WEEK_EXPERIMENT_PROJECT.pdf)
+- **Plan — 2주 실험 계획:** [2주 양자 컴퓨팅 실험 계획서](quantum/README.md#plan--2주-실험-계획)
 - **Result Report — 2주 프로젝트 결과 보고:** [2주 프로젝트 결과 보고서](quantum/QUANTUM_COMPUTING_2WEEK_EXPERIMENT_PROJECT.pdf)
 
