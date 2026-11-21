@@ -5,7 +5,7 @@ from modules.calculators.AccuracyCalculator import AccuracyCalculator
 from modules.calculators.LossCalculator import LossCalculator
 from modules.callbacks.EarlyStopping import EarlyStopping
 from modules.training.logging.EpochLogger import EpochLogger
-from modules.training.runners.BatchRunner import BatchRunner
+from modules.training.runners.QuantumBatchRunner import QuantumBatchRunner
 from modules.training.trainers.BaseTrainer import BaseTrainer
 
 
@@ -87,7 +87,7 @@ class BaseTrainTrainer(BaseTrainer):
 
     @tc.validate_types
     def create_batch_runner(self) -> tc.BatchRunnerLike:
-        return BatchRunner(
+        return QuantumBatchRunner(
             model=self.model,
             loss_calculator=LossCalculator(self.compile_configs.get_criterion()),
             accuracy_calculator=AccuracyCalculator(),
