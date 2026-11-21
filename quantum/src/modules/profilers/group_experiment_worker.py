@@ -155,7 +155,7 @@ def run_one(family, scale, seed, group_size):
                     "round": round_index, "train_mse": mse(xt, yt),
                     "val_mse": mse(xv, yv),
                 })
-    memory = profiler.summary()["stages"][0]
+    memory = profiler.summary()["stages"][-1]
     return {
         "family": family, "scale": scale, "seed": seed,
         "theta_group_size": group_size,
