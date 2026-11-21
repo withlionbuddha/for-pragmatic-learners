@@ -58,7 +58,7 @@ class _DirectionObjective:
         return value
 
 
-class QuantumDirectionCOBYLAWork:
+class QuantumDirectionCOBYLA:
     @tc.validate_types
     def __init__(
         self,
