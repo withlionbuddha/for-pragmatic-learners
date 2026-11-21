@@ -51,12 +51,12 @@ class AdaptiveQuantumDirectionCOBYLA(QuantumDirectionCOBYLA):
         count = sum(p.numel() for p in self.params)
         for step in range(self.steps):
             directions = self.create_directions(count)
-            sampled = np.concatenate(
+            sampled = np.sign(np.concatenate(
                 [
                     direction.detach().cpu().reshape(-1).numpy()
                     for direction in directions
                 ]
-            )
+            )).astype(np.int8)
             baseline = [p.detach().clone() for p in self.params]
             objective = _DirectionObjective(
                 self.params, baseline, directions, self._measure_evaluate(evaluate)
