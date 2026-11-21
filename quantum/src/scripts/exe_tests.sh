@@ -2,8 +2,9 @@
 set -euo pipefail
 
 # Run from the Python source root regardless of the caller's working directory.
-SOURCE_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+SOURCE_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$SOURCE_DIR"
+export PYTHONPATH="$SOURCE_DIR${PYTHONPATH:+:$PYTHONPATH}"
 
 if [[ -n "${PYTHON:-}" ]]; then
     PYTHON_BIN="$PYTHON"
