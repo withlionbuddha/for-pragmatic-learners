@@ -132,3 +132,11 @@ def test_adaptive_uses_full_cobyla_budget_with_same_total_evaluations(monkeypatc
     assert budgets == [12]
     # Once baseline is reused, its objective evaluation is counted only once.
     assert optimizer.adaptation_history[0]["optimization_evaluations"] == 1
+
+
+def test_optimizer_accepts_grouped_theta():
+    model = nn.Linear(2, 1)
+    optimizer = AdaptiveQuantumDirectionCOBYLA(theta_group_size=2)
+    optimizer.prepare(model)
+    assert len(optimizer.sampler.theta) == 2
+    assert optimizer.sampler.parameter_count == 3

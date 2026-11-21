@@ -20,9 +20,14 @@ class AdaptiveQuantumDirectionSampler:
         theta: float = math.pi / 2,
         learning_rate: float = 0.1,
         min_probability: float = 0.05,
+        theta_group_size: int | None = 1,
     ) -> None:
         if not (0 < min_probability < 0.5) or learning_rate <= 0:
             raise ValueError("invalid adaptive sampler configuration")
+        if theta_group_size is not None and (type(theta_group_size) is not int or theta_group_size < 1):
+            raise ValueError("theta_group_size must be a positive integer or None")
+        self.theta_group_size = theta_group_size
+        self.parameter_count: int | None = None
         self.learning_rate = float(learning_rate)
         self.min_probability = float(min_probability)
         self.theta = float(theta)
@@ -38,15 +43,24 @@ class AdaptiveQuantumDirectionSampler:
     def prepare(self, count: int) -> None:
         if count < 1:
             raise ValueError("count must be positive")
+        if self.parameter_count is not None and self.parameter_count != count:
+            raise ValueError("parameter count changed")
+        self.parameter_count = count
+        size = count if self.theta_group_size is None else self.theta_group_size
+        groups = (count + size - 1) // size
         if np.ndim(self.theta) == 0:
-            self.theta = np.full(count, float(self.theta))
-        elif len(self.theta) != count:
+            self.theta = np.full(groups, float(self.theta))
+        elif len(self.theta) != groups:
             raise ValueError("parameter count changed")
         self._clip_theta()
 
     @property
     def probabilities_plus(self) -> np.ndarray:
         return np.sin(np.asarray(self.theta) / 2) ** 2
+
+    def _group_indices(self, count: int) -> np.ndarray:
+        size = count if self.theta_group_size is None else self.theta_group_size
+        return np.arange(count) // size
 
     @property
     def probability_plus(self) -> float:
@@ -63,7 +77,8 @@ class AdaptiveQuantumDirectionSampler:
         # Each coordinate has its own Ry(theta). Sampling is independent.
         rng = np.random.default_rng(seed)
         values = np.empty(count, dtype=np.int8)
-        for i, angle in enumerate(self.theta):
+        for i, group in enumerate(self._group_indices(count)):
+            angle = self.theta[group]
             circuit = QuantumCircuit(1)
             circuit.ry(float(angle), 0)
             state = Statevector.from_instruction(circuit)
@@ -89,7 +104,11 @@ class AdaptiveQuantumDirectionSampler:
         self.prepare(int(directions.size))
         previous_theta = self.theta.copy()
         previous_p = self.probabilities_plus.copy()
-        score = 2 * ((directions == 1).astype(float) - previous_p) / np.sin(self.theta)
+        groups = self._group_indices(directions.size)
+        plus_counts = np.bincount(groups, weights=(directions == 1).astype(float), minlength=len(self.theta))
+        group_counts = np.bincount(groups, minlength=len(self.theta))
+        empirical_plus = plus_counts / group_counts
+        score = 2 * (empirical_plus - previous_p) / np.sin(self.theta)
         self.theta += self.learning_rate * float(np.clip(reward, -1.0, 1.0)) * score
         self._clip_theta()
         return {

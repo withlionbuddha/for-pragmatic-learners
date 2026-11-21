@@ -26,6 +26,7 @@ class AdaptiveQuantumDirectionCOBYLA(QuantumDirectionCOBYLA):
         cobyla_radius: float = 0.1,
         seed: int = 42,
         adaptive_learning_rate: float = 0.1,
+        theta_group_size: int | None = 1,
         target_loss_meter: object | None = None,
     ) -> None:
         super().__init__(
@@ -36,7 +37,8 @@ class AdaptiveQuantumDirectionCOBYLA(QuantumDirectionCOBYLA):
             target_loss_meter=target_loss_meter,
         )
         self.sampler = AdaptiveQuantumDirectionSampler(
-            learning_rate=adaptive_learning_rate
+            learning_rate=adaptive_learning_rate,
+            theta_group_size=theta_group_size,
         )
         self.adaptation_history: list[dict] = []
 
@@ -122,6 +124,7 @@ class AdaptiveQuantumDirectionCOBYLA(QuantumDirectionCOBYLA):
             "quantum_sampling_calls": self.steps,
             "status": status,
             "steps_done": self.steps,
+            "theta_group_size": self.sampler.theta_group_size,
             "adaptive_theta": np.asarray(self.sampler.theta).tolist(),
             "adaptive_probability_plus": self.sampler.probability_plus,
             "adaptive_probabilities_plus": self.sampler.probabilities_plus.tolist(),
