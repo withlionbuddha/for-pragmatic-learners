@@ -13,10 +13,8 @@ class FakeSampler:
         return np.ones(count, dtype=np.int8)
 
 
-@pytest.mark.parametrize("work", [
-    QuantumDirectionCOBYLA(steps=1, direction_cobyla_evaluations=12),
-])
-def test_quantum_work_updates_and_reports_metrics(work):
+def test_quantum_work_updates_and_reports_metrics():
+    work = QuantumDirectionCOBYLA(steps=1, direction_cobyla_evaluations=12)
     model = nn.Linear(1, 1, bias=False)
     with torch.no_grad():
         model.weight.fill_(0.0)
@@ -34,8 +32,9 @@ def test_quantum_work_updates_and_reports_metrics(work):
     assert metrics["steps_done"] == 1
 
 
-@pytest.mark.parametrize("work", [QuantumDirectionCOBYLA()])
-def test_optimize_requires_prepare(work):
+@pytest.mark.parametrize("optimizer_cls", [QuantumDirectionCOBYLA, AdaptiveQuantumDirectionCOBYLA])
+def test_optimize_requires_prepare(optimizer_cls):
+    work = optimizer_cls()
     with pytest.raises(RuntimeError, match="prepare"):
         work.optimize(lambda: 1.0)
 
@@ -55,7 +54,6 @@ def test_cobyla_restores_parameters_when_objective_fails():
     with pytest.raises(RuntimeError, match="objective failed"):
         work.optimize(failing_evaluate)
     assert torch.equal(model.weight.detach(), baseline)
-
 
 
 def test_adaptive_cobyla_updates_with_normalized_multi_parameter_directions():
