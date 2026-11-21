@@ -6,7 +6,8 @@
 
 양자 컴퓨팅의 실용성 검증 프로젝트입니다.
 
+- **Quantum README:** [프로젝트 소개·후속 연구 및 실행 방법](quantum/README.md)
 - **Plan — 2주 실험 계획:** [2주 양자 컴퓨팅 실험 계획서](quantum/QUANTUM_COMPUTING_2WEEK_EXPERIMENT_PROJECT.pdf)
 - **Result Report — 2주 프로젝트 결과 보고:** [2주 프로젝트 결과 보고서](quantum/QUANTUM_COMPUTING_2WEEK_EXPERIMENT_PROJECT.pdf)
 
-현재 Plan과 Result Report의 연결 대상은 동일한 PDF입니다. 후속 연구 및 실행 방법은 [Quantum README](quantum/README.md)에 정리되어 있습니다.
+※ 현재 Plan과 Result Report는 동일한 PDF 파일을 참조합니다.
