@@ -80,7 +80,6 @@ def test_adaptive_cobyla_sampler_receives_only_finite_signed_directions(monkeypa
     assert len(observed) == 1
 
 
-@pytest.mark.xfail(strict=True, reason="Pending: reward must credit the actual signed COBYLA displacement")
 def test_adaptation_credits_actual_displacement_when_alpha_is_negative(monkeypatch):
     """A negative alpha reverses the sampled direction used for adaptation."""
     import modules.optimizers.AdaptiveQuantumDirectionCOBYLA as adaptive_module
@@ -113,7 +112,6 @@ def test_adaptation_credits_actual_displacement_when_alpha_is_negative(monkeypat
     assert observed[0][1] > 0
 
 
-@pytest.mark.xfail(strict=True, reason="Pending: reuse baseline evaluation to preserve COBYLA search budget")
 def test_adaptive_uses_full_cobyla_budget_with_same_total_evaluations(monkeypatch):
     """Baseline measurement must not reduce the COBYLA search budget."""
     import modules.optimizers.AdaptiveQuantumDirectionCOBYLA as adaptive_module

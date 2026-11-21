@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import math
 from collections.abc import Callable
 
 import numpy as np
@@ -17,7 +16,7 @@ from modules.optimizers.QuantumDirectionCOBYLA import (
 
 
 class AdaptiveQuantumDirectionCOBYLA(QuantumDirectionCOBYLA):
-    """Independent adaptive Ry sampler + one-dimensional COBYLA optimizer."""
+    """Coordinate-wise adaptive Ry sampler with one-dimensional COBYLA."""
 
     @tc.validate_types
     def __init__(
@@ -42,6 +41,11 @@ class AdaptiveQuantumDirectionCOBYLA(QuantumDirectionCOBYLA):
         self.adaptation_history: list[dict] = []
 
     @tc.validate_types
+    def prepare(self, model: object) -> None:
+        super().prepare(model)
+        self.sampler.prepare(sum(p.numel() for p in self.params))
+
+    @tc.validate_types
     def optimize(self, evaluate: Callable[[], float]) -> tc.Payload:
         if not self.params or self.sampler is None:
             raise RuntimeError("prepare(model) must be called before optimize()")
@@ -51,24 +55,30 @@ class AdaptiveQuantumDirectionCOBYLA(QuantumDirectionCOBYLA):
         count = sum(p.numel() for p in self.params)
         for step in range(self.steps):
             directions = self.create_directions(count)
-            sampled = np.sign(np.concatenate(
-                [
-                    direction.detach().cpu().reshape(-1).numpy()
-                    for direction in directions
-                ]
-            )).astype(np.int8)
+            sampled = np.sign(np.concatenate([
+                direction.detach().cpu().reshape(-1).numpy()
+                for direction in directions
+            ])).astype(np.int8)
             baseline = [p.detach().clone() for p in self.params]
             objective = _DirectionObjective(
                 self.params, baseline, directions, self._measure_evaluate(evaluate)
             )
             try:
-                # An extra objective call measures the baseline for a valid reward.
-                baseline_loss = float(self._measure_evaluate(evaluate)())
-                evaluations += 1
-                if not math.isfinite(baseline_loss):
-                    raise FloatingPointError("Non-finite baseline loss")
+                # COBYLA normally starts at x0=0. Cache that first evaluation,
+                # so baseline measurement does not consume an extra objective call.
+                baseline_loss = objective(np.array([0.0]))
+                cached = True
+
+                def cached_objective(alpha: np.ndarray) -> float:
+                    nonlocal cached
+                    if cached and float(alpha[0]) == 0.0:
+                        cached = False
+                        return baseline_loss
+                    cached = False
+                    return objective(alpha)
+
                 result = minimize(
-                    objective,
+                    cached_objective,
                     np.array([0.0]),
                     method="COBYLA",
                     options={
@@ -81,24 +91,28 @@ class AdaptiveQuantumDirectionCOBYLA(QuantumDirectionCOBYLA):
                 objective.assign(0.0)
                 raise
 
-            # Keep the original weights when the search did not improve the loss.
             if objective.best_loss < baseline_loss:
                 objective.assign(objective.best_alpha)
                 improvement = baseline_loss - objective.best_loss
             else:
                 objective.assign(0.0)
                 improvement = 0.0
-            evaluations += objective.evaluations
-            record = self.sampler.update(sampled, improvement)
-            record.update(
-                {
-                    "step": step,
-                    "baseline_loss": baseline_loss,
-                    "best_loss": objective.best_loss,
-                    "best_alpha": objective.best_alpha,
-                    "optimization_evaluations": objective.evaluations + 1,
-                }
+
+            # Negative alpha reverses the accepted parameter displacement.
+            accepted_signs = (
+                sampled * np.sign(objective.best_alpha).astype(np.int8)
+                if improvement > 0 and objective.best_alpha != 0
+                else sampled
             )
+            record = self.sampler.update(accepted_signs, improvement)
+            evaluations += objective.evaluations
+            record.update({
+                "step": step,
+                "baseline_loss": baseline_loss,
+                "best_loss": objective.best_loss,
+                "best_alpha": objective.best_alpha,
+                "optimization_evaluations": objective.evaluations,
+            })
             self.adaptation_history.append(record)
             status = str(result.message)
 
@@ -108,7 +122,8 @@ class AdaptiveQuantumDirectionCOBYLA(QuantumDirectionCOBYLA):
             "quantum_sampling_calls": self.steps,
             "status": status,
             "steps_done": self.steps,
-            "adaptive_theta": self.sampler.theta,
+            "adaptive_theta": np.asarray(self.sampler.theta).tolist(),
             "adaptive_probability_plus": self.sampler.probability_plus,
+            "adaptive_probabilities_plus": self.sampler.probabilities_plus.tolist(),
             "adaptation_history": self.adaptation_history,
         }
