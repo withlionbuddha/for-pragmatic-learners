@@ -110,3 +110,11 @@ class QuantumSPSAWork:
             "status": "completed",
             "steps_done": self.steps,
         }
+
+    def initialize_parameters(self, model: object) -> None:
+        """Compatibility entry point for QuantumAdapter."""
+        self.prepare(model)
+
+    def run_objective(self, evaluate: Callable[[], float]) -> tc.Payload:
+        """Compatibility entry point for QuantumAdapter."""
+        return self.optimize(evaluate)
