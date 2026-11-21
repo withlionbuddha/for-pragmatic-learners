@@ -46,6 +46,7 @@ def test_quantum_epoch_runner_disables_grad_and_aggregates():
     assert batch.calls == 2
     assert batch.grad_modes == [False, False]
     assert result["optimizer_result"]["quantum_shots"] == 4
+    assert result["train_loss"] == pytest.approx(1.0)
     assert result["checkpoint_loss"] == pytest.approx(1.0)
 
 
