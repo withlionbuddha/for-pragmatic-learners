@@ -95,3 +95,43 @@ def test_adaptive_cobyla_updates_with_normalized_multi_parameter_directions():
     assert metrics["optimization_evaluations"] >= 2
     assert len(metrics["adaptation_history"]) == 1
     assert 0.0 <= metrics["adaptive_probability_plus"] <= 1.0
+
+
+def test_adaptive_cobyla_sampler_receives_only_finite_signed_directions(monkeypatch):
+    """Expose sampled values if the adaptive update receives invalid directions."""
+    model = nn.Linear(2, 1, bias=True)
+    with torch.no_grad():
+        model.weight.zero_()
+        model.bias.zero_()
+    optimizer = AdaptiveQuantumDirectionCOBYLA(
+        steps=1, direction_cobyla_evaluations=12, seed=7
+    )
+    optimizer.prepare(model)
+    optimizer.sampler.sample = FakeSampler().sample
+    original_update = optimizer.sampler.update
+    observed = []
+
+    def checked_update(directions, improvement):
+        values = np.asarray(directions)
+        diagnostics = (
+            f"dtype={values.dtype}, unique={np.unique(values)}, "
+            f"shape={values.shape}, finite={np.all(np.isfinite(values))}, "
+            f"valid={np.all(np.isin(values, [-1, 1]))}"
+        )
+        assert values.shape == (3,), diagnostics
+        assert np.all(np.isfinite(values)), diagnostics
+        assert np.all(np.isin(values, [-1, 1])), diagnostics
+        observed.append(values.copy())
+        return original_update(directions, improvement)
+
+    monkeypatch.setattr(optimizer.sampler, "update", checked_update)
+
+    def evaluate():
+        with torch.no_grad():
+            return float(
+                (model.weight - 2).square().sum().item()
+                + (model.bias - 2).square().sum().item()
+            )
+
+    optimizer.optimize(evaluate)
+    assert len(observed) == 1
