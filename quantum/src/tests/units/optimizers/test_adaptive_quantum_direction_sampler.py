@@ -22,3 +22,15 @@ def test_update_rejects_nonfinite_reward():
     sampler = AdaptiveQuantumDirectionSampler()
     with pytest.raises(ValueError, match="finite"):
         sampler.update(np.array([-1, 1], dtype=np.int8), float("nan"))
+
+
+@pytest.mark.xfail(strict=True, reason="Pending: independent direction probabilities per parameter")
+def test_sampler_learns_independent_parameter_probabilities():
+    """Opposite rewards for distinct coordinates should not share one theta."""
+    sampler = AdaptiveQuantumDirectionSampler(learning_rate=0.1)
+    sampler.prepare(2)
+    sampler.update(np.array([1, -1], dtype=np.int8), 0.5)
+    probabilities = np.asarray(sampler.probabilities_plus)
+    assert probabilities.shape == (2,)
+    assert probabilities[0] > 0.5
+    assert probabilities[1] < 0.5
