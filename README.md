@@ -9,4 +9,5 @@
 - **Quantum README:** [quantum/readme.md](quantum/README.md)
 - **Plan — 2주 실험 계획:** [2주 양자 컴퓨팅 실험 계획서](quantum/optimizer_experiment_plan_v.0.1.0.pdf)
 - **Result Report — 2주 프로젝트 결과 보고:** [2주 프로젝트 결과 보고서](quantum/QUANTUM_COMPUTING_2WEEK_EXPERIMENT_PROJECT.pdf)
+- **after 2weeks - 2주후 프로젝트 결과 검사:** [](quantum/after2weeks/inspect_QUANTUM_COMPUTING_2WEEK_EXPERIMENT_PROJECT.pdf)
 
