@@ -10,4 +10,6 @@
 - **Plan — 2주 실험 계획:** [2주 양자 컴퓨팅 실험 계획서](quantum/optimizer_experiment_plan_v.0.1.0.pdf)
 - **Result Report — 2주 프로젝트 결과 보고:** [2주 프로젝트 결과 보고서](quantum/QUANTUM_COMPUTING_2WEEK_EXPERIMENT_PROJECT.pdf)
 - **after 2weeks - 결과 보고서 체크:** [결과 보고서 체크](quantum/after2weeks/inspect_QUANTUM_COMPUTING_2WEEK_EXPERIMENT_PROJECT.pdf)
+- **Quantum End** - "유행 따라 Quantum을 도입하는게 아니라 Quantum의 우수성이 증명된 것만 선택적으로 도입 하는것이 효율적이다." 
+  
 
